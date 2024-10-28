@@ -1,0 +1,20 @@
+---
+title: "Banana Experiment"
+author: "Peiyao Cai, Jia Guo, Jiatong Liang"
+output: pdf_document
+date: "2024-10-28"
+header-includes:
+    - \usepackage{placeins}
+output: bookdown::pdf_document2
+---
+
+# Introduction
+
+# Experiment Procedure
+Every 24 hours at 9pm when there is no more sunlight, one group member (Jia Guo) takes pictures of all 30 bananas individually. The experiment lasted a total of 5 days from October 17 to October 21, 2024, so there was a total of 150 banana pictures. For the first day, labeled as "Day 1" in our dataset is a picture of the bananas before any treatment was applied so that we will have the original banana colors. The angle and height of all pictures were kept as consistent as possible and a lamp, approximately 10 inches in height, was used a height reference. In order to prevent the bacteria from our hands to contaminate the banana, sugar, and salt, nitrile exam gloves from Costco were used whenever taking pictures and handling the experiment subjects. For the positioning of the bananas inside the plastic boxes, there was no spatial randomization and no planning was done to keep orientation of the all bananas consistent. Due to the limitation of the size of the boxes, bananas were simply put into the boxes in whatever way first without having any of the bananas touching each other. We attemppted to keep the position of the banana as identical as we can but due to the nature of the experiment, we had to dig a hole in the sugar and salt to place the banana each time which prevents us from keeping the positions perfectly identical.
+
+Five participants was recruited to rate the bananas and the participants were the parents and siblings of our group members. We were unable to send emails, share google drive, or send out a surveys due to regulations in China which ban the usage of many websites. To overcome this, all banana pictures were rated through WeChat where each member would initiate a facetime and record participant responses with our cameras turned off to prevent participants from seeing us. We screenshared pictures of the banana with a split screen, one half of the screen will have the scale and the other half of the screen will be used to flip through 30 banana pictures. All responses and pictures are recorded and uploaded onto the Github repository. Each participants responded everyday and rated 30 bananas. We are extremely grateful to their participation as their involvement was crucial to the experiment.  
+
+```{r, banana scale, echo = F, fig.width = 6, fig.height = 4, fig.align = 'center', fig.cap = "Banana color scale used for rating bananas", cache = F}
+knitr::include_graphics("images/banana_scale.png")
+```
