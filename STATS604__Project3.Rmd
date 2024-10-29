@@ -5,10 +5,33 @@ output: pdf_document
 date: "2024-10-28"
 header-includes:
     - \usepackage{placeins}
-output: bookdown::pdf_document2
 ---
 
 # Introduction
+
+Many people find themselves frustrated with overripe bananas, especially when they ripen faster than expected, leading to waste and unwanted texture changes. This experiment addresses a common household challenge: identifying simple methods to slow the ripening process of bananas. By investigating the effects of common preservatives, this study aims to provide a practical, easily implemented solution for households. Specifically, it examines how accessible items like iodized salt and granulated sugar, known for their preservative qualities, might help extend banana freshness.
+
+The central question guiding this experiment is whether burying a banana in iodized salt or granulated sugar can effectively slow down its ripening process. Both salt and sugar are widely used as natural preservatives due to their ability to inhibit microbial growth and delay spoilage in various foods. By examining the effects of these substances on bananas, the experiment seeks to determine if either method offers a viable, low-cost solution to prolong banana shelf life, thus reducing food waste.
+
+Although iodized salt was chosen for its accessibility, it may not function as an effective preservative in the same way as dedicated preservation salts. True preservation salts, such as canning or pickling salt, lack additives like iodine or anti-caking agents present in table salt. These additives, though harmless in cooking, may impact the salt’s ability to draw out moisture effectively—a critical factor in slowing bacterial growth and decay. By using iodized salt, this experiment reflects a typical household approach; however, the preservative effect may be limited compared to canning salt, a factor kept in mind when interpreting the results.
+
+# Experiment Overview
+
+This experiment assessed the effects of common household preservatives, iodized salt and granulated sugar, on the ripening process of bananas. The design included two treatment groups, where bananas were buried in either salt or sugar, and one control group in which no treatment was applied. Both iodized salt and granulated sugar were sourced from Meijer to ensure consistent product quality across treatments.
+
+A total of 30 bananas were obtained from Kroger and randomly divided in a 1:1:1 ratio among the salt, sugar, and control groups. To prevent selection bias, a third party (the brother of a group member) purchased the bananas independently, ensuring that group members had no influence over their selection. This setup aimed to provide an unbiased comparison across treatment and control groups.
+
+Each banana was photographed and rated every 24 hours, allowing for consistent tracking of color changes, the primary indicator of ripening. These observations were conducted over five days, capturing the progression of ripeness across different conditions. This systematic approach was designed to highlight any delays in ripening due to the preservative effects of salt or sugar compared to untreated bananas.
+
+# Randomization and Blinding
+
+To control for variations in banana size, a randomized block design was used. Each banana was weighed, numbered, and categorized into three size blocks—small (142-163 grams), medium (164-190 grams), and large (191-226 grams). Within each block, bananas were randomly assigned to one of the three treatment groups: salt, sugar, or control. This ensured that each group contained 3 small, 4 medium, and 3 large bananas, balancing potential size-related effects on ripening across treatments.
+
+The experiment was conducted in three separate, covered boxes, each designated for one treatment: one filled with salt, one with sugar, and one left empty as a control. To maintain blinding, the boxes were made visually indistinguishable. A third party (the brother of a group member) selected a randomization seed and assigned labels A, B, and C to the boxes, preventing group members from knowing which treatment each box contained. This method provided a double-blind setup, as neither the group members nor the participants responsible for rating could identify the treatment conditions.
+
+Despite initial efforts to maintain a double-blind setup, challenges arose on the first day of the experiment. Distinguishing control bananas from the treated ones became unavoidable. Handling the bananas revealed textural differences, as the sugar and salt adhered to the banana skins, making the treatment groups identifiable by touch and appearance. Washing or rubbing off the salt and sugar was avoided to prevent damaging the banana skin, which could interfere with the natural ripening process.
+
+To address these limitations, we implemented adjustments to minimize bias. Although distinguishing between treated and untreated bananas was inevitable, the distinction between the salt and sugar treatments remained less obvious. Consequently, group members refrained from participating in the banana ratings, and instead, external participants were recruited. These participants were kept unaware of the experiment's purpose and methodology. By limiting participants’ knowledge of the experimental design, the approach aimed to minimize knowledge-based bias and preserve the double-blind intent as much as possible, ensuring that ratings were unbiased and solely based on observable ripening characteristics.
 
 # Experiment Procedure
 Every 24 hours at 9pm when there is no more sunlight, one group member (Jia Guo) takes pictures of all 30 bananas individually. The experiment lasted a total of 5 days from October 17 to October 21, 2024, so there was a total of 150 banana pictures. For the first day, labeled as "Day 1" in our dataset is a picture of the bananas before any treatment was applied so that we will have the original banana colors. The angle and height of all pictures were kept as consistent as possible and a lamp, approximately 10 inches in height, was used a height reference. In order to prevent the bacteria from our hands to contaminate the banana, sugar, and salt, nitrile exam gloves from Costco were used whenever taking pictures and handling the experiment subjects. For the positioning of the bananas inside the plastic boxes, there was no spatial randomization and no planning was done to keep orientation of the all bananas consistent. Due to the limitation of the size of the boxes, bananas were simply put into the boxes in whatever way first without having any of the bananas touching each other. We attemppted to keep the position of the banana as identical as we can but due to the nature of the experiment, we had to dig a hole in the sugar and salt to place the banana each time which prevents us from keeping the positions perfectly identical.
@@ -22,7 +45,7 @@ knitr::include_graphics("images/banana_scale.png")
 To ensure that the experiment had consistent and reliable responses from the participants, two "dummy" bananas were put additionally into the pictures on days 1, 3, and 5.
 
 ```{r, dummy banana, echo = F, fig.width = 6, fig.height = 4, fig.align = 'center', fig.cap = "Dummy banana used for ensuring consistency and reliability of responses", cache = F}
-knitr::include_graphics("images/banana_scale.png")
+knitr::include_graphics("images/dummy_banana.png")
 ```
 
 The left banana was a screen shot of banana number 7, the purpose of this banana was to ensure that all participants would accurately evaluate the left picture as a 7 and make sure that they are reading the scale correctly. The right banana was used to ensure consistency, if the banana pictures to not vary across different days, then the participant responses should not vary as well. On all 3 days these pictures were presented, participants were able to correctly identify the left pictured banana as a 7 and the right picture banana consistently fell into the acceptable range of 6-9 that was decided by the group members. 
