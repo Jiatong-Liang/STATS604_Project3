@@ -237,18 +237,22 @@ In this section, we examine the treatment effects of burying bananas in sugar an
 
 ### T-test
 
-Firstly, we compare the ripeness of the treatment groups (salt or sugar) with the control group using two-sample t-tests; the results are provided below.
-
+Firstly, we compare the ripeness of the treatment groups (salt or sugar) with the control group using one sided two-sample t-tests. For $t \in \{\mathrm{sugar}, \mathrm{salt}\}$, we focus on the following hypothesis testing problem:
+\[
+\mathrm{H}_0: \mathrm{Ripeness}_{t} = \mathrm{Ripeness}_{\mathrm{control}},~~\mathrm{versus}~~\mathrm{H}_a: \mathrm{Ripeness}_{t} < \mathrm{Ripeness}_{\mathrm{control}}.
+\]
+The results are given as follows:
 ```{r t test, echo = FALSE}
-t.test(dif_ctrl, dif_salt)
-t.test(dif_ctrl, dif_sugar)
+t.test(dif_ctrl, dif_salt, alternative = 'greater')
+t.test(dif_ctrl, dif_sugar, alternative  = 'greater')
 ```
 
 The p-value for the sugar group is very small, supporting our conclusions. 
 
 ### Permutation Test
 
-For the permutation test, considering that each treatment and control group has 20 data points, fully permuting all treatments would require substantial computational resources ($2^{20}$ operations). To address this, we use a blocked permutation test. We group the bananas into three subgroups based on their weights (light, medium, and heavy). Each treatment group contains 10 bananas, with 3 light, 4 medium, and 3 heavy bananas. We then permute only within these weight groups. The testing procedures are outlined below, beginning with the salt group.
+For the permutation test, we focus on the same hypothesis testing problem shown above. 
+Considering that each treatment and control group has 20 data points, fully permuting all treatments would require substantial computational resources ($2^{20}$ operations). To address this, we use a blocked permutation test. We group the bananas into three subgroups based on their weights (light, medium, and heavy). Each treatment group contains 10 bananas, with 3 light, 4 medium, and 3 heavy bananas. We then permute only within these weight groups. The testing procedures are outlined below, beginning with the salt group.
 
 ```{r, echo = FALSE}
 observed_difference = mean(dif_salt) - mean(dif_ctrl)
