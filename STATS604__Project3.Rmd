@@ -67,7 +67,7 @@ The above figures shows our experiment setup as well as an example of the data. 
 To control for temperature we set the thermostat to "auto" mode to maintain a consistent 68 degree Fahrenheit, which is the average room temperature for most homes. There is a belief that higher temperatures can allow a banana to ripen more quickly and in Michigan, the temperature varies drastically throughout the day so we decided to control the temperature in the room. The humidity was set to 40\% which is the recommended humidity level for humans. We eliminated sunlight exposure by keeping the experiment behind a wall that prevents the sunlight from reaching any of the bananas. For the lighting of the picture, we decided that natural light is too inconsistent because it's possible that one day it might rain or be cloudy and the pictures being rated will not be consistent. The experiment will only take place at night and to ensure consistent lighting we decided to use a 60 watt, 4000k cool white lightbulb. Specifically white light was preferred over yellow light because for photography reasons white light can lead to less color auto-adjustments and capture photos "true to life." For camera quality, as Apple commercials always claim that higher generations of iPhones have better camera features, we decided to use the iPhone 14 pro max which was the highest generation among the group. The HDR camera setting was turned off on the iPhone because Apple's support page stated that this was the best way to capture "true to life" photos. One major reason we decided to focus on so many details for this experiment is because we want it to be reproducible. Regardless of where in the world and what time of the year it is, all of these features regarding room condition and camera quality have been controlled and can be replicated with some basic equipment. By having such strict control over all of these variables, we might be limiting the possibility of generalizing these findings of the experiment but we still believe that all of these experiment details are crucial for reproducibility. If there was a lack of control over things like room condition, then the experiment will be difficult to reproduce. 
 
 # Data
-All of the data is put into the Github. The data consists of the following: an experiment diary recording the details of the experiment across 5 days that focuses on describing the process of collecting the data, the data itself that is stored in an excel sheet, and the raw photos of a total of 150 bananas. The data has a recorded weight for all the bananas before treatment was applied and columns for 5 days each with the ratings from 5 participants. 
+All of the data is put into the Github: https://github.com/Jiatong-Liang/STATS604_Project3.git. The data consists of the following: an experiment diary recording the details of the experiment across 5 days that focuses on describing the process of collecting the data, the data itself that is stored in an excel sheet, and the raw photos of a total of 150 bananas. The data has a recorded weight for all the bananas before treatment was applied and columns for 5 days each with the ratings from 5 participants. 
 
 # Exploratory Data Analysis
 ```{r preprocessing}
@@ -115,6 +115,55 @@ legend("topleft", legend = c("Sugar", "Salt", "Control"),
 
 
 ```{r}
+# Define function to check if there is any decrease in a row from day to day
+has_any_decrease <- function(x) any(diff(x) < 0)
+
+# Initialize empty list to store data frames for each replicate that has any decrease
+decreasing_replicates <- list()
+
+# Loop through each replicate (1 to 5) to find rows with any decrease across days
+for (i in 1:5) {
+  # Select columns for the replicate, e.g., Day 1(i), Day 2(i), ..., Day 5(i)
+  day_columns <- paste0("Day ", 1:5, "(", i, ")")
+  
+  # Filter rows where there is any decrease across days
+  decreasing_data <- raw %>%
+    select(Label, all_of(day_columns)) %>%
+    filter(apply(select(., -Label), 1, has_any_decrease)) %>%
+    pivot_longer(cols = starts_with("Day"), names_to = "Day", values_to = "Value") %>%
+    mutate(Replicate = paste0("Grader ", i))
+  
+  # Only add to list if there are rows that met the condition
+  if (nrow(decreasing_data) > 0) {
+    decreasing_replicates[[i]] <- decreasing_data
+  }
+}
+
+# Check if there is any data to plot
+if (length(decreasing_replicates) == 0) {
+  message("No rows with any decrease found across the days.")
+} else {
+  # Combine all decreasing replicates data into a single data frame
+  all_decreasing_data <- bind_rows(decreasing_replicates)
+  
+  # Plot the data with ggplot2
+  ggplot(all_decreasing_data, aes(x = Day, y = Value, group = Label, color = Label)) +
+    geom_line() +
+    geom_point() +
+    facet_wrap(~ Replicate) +
+    labs(title = "Trends with Any Decrease Across Days for Each Grader",
+         y = "Measurement Value",
+         color = "Banana identifier") +
+    theme_minimal() + theme(
+    axis.text.x = element_blank(),    # Remove x-axis text
+    axis.ticks.x = element_blank(),   # Remove x-axis ticks
+    axis.title.x = element_blank()     # Remove x-axis title
+  )
+}
+```
+Here we investigated any banana that had a decrease between consecutive days for all of the graders. Here we just wanted to confirm that there is no significant error and no data cleaning was done to remove these entries. The group decided that these are all natural human errors that was acceptable for the experiment. 
+
+```{r}
 g1_avg = colMeans(raw[,c(5,10,15,20,25)])
 g2_avg = colMeans(raw[,(c(5,10,15,20,25)+1)])
 g3_avg = colMeans(raw[,(c(5,10,15,20,25)+2)])
@@ -128,13 +177,31 @@ matplot(t(combined), type = "l", lty = 1, col = colors,
 legend("topleft", legend = c("Grader 1", "Grader 2", "Grader 3", "Grader 4", "Grader 5"), 
        col = c("green", "red", "blue","pink", "yellow"), lty = 1)
 
-
 ```
 
 
 The first thing that needed to be checked was confirming that none of the banana ratings are reversing in age. The overall trend that we see from the figure is that the ratings are increasing as expected. There's a few bananas that might have decreased in rating on one day but those were humans errors that the group was willing to accept. No data entries were thrown out and no data cleaning was done. The second thing we wanted to check was to see if there was any grader bias. If one grader is always rating the bananas with a high value then this is something we must consider in our analysis. From the figure we see that for the most part, except for one grader who on average rated a little bit lower than the other participants, we have consistent ratings. This informed us to not consider the grader effect as part of our analysis for treatment effect.
 
+```{r}
+day2_data <- raw %>%
+  select(Label, starts_with("Day")) %>%
+  select(Label, ends_with("(1)"))
 
+long_day2_data <- day2_data %>%
+  pivot_longer(cols = -Label, names_to = "Day", values_to = "Value") %>%
+  mutate(Day = factor(Day, levels = c("Day 1(1)", "Day 2(1)", "Day 3(1)", "Day 4(1)", "Day 5(1)")))
+
+ggplot(long_day2_data, aes(x = Day, y = Value, color = Label, group = Label)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Measurements for All Labels on Days 1 to 5 (2nd grader)",
+       x = "Day",
+       y = "Measurement Value",
+       color = "Banana identifier") +
+  theme_minimal() 
+```
+
+We randomly sampled one grader from the 5 and decided to plot their ratings for all 30 bananas across 5 days. Overall we see an increasing trend, which is expected, and the decrease in banana ratings on a few days are natural human errors. This same pattern was seen in all 5 graders but only one figure will be shown in this report. 
 
 ## Statistical Tests
 ```{r difference in means}
@@ -267,3 +334,6 @@ summary(lm_obj)
 ```
 We can see that the sugar indicator is significantly negative in the regression result.
 Putting all pieces together, our statsitical test results together show that burying bananas in sugar can alleviate banana ripeness.
+
+# Conclusion
+Overall we have seen that there is evidence suggesting that burying bananas in granulated sugar will slow down the ripening process whereas using iodized salt is ineffective. One possible improvement to this experiment is exploring the usage of canning salt instead of iodized salt. Prior to this experiment, the group did not realize that not all forms of salt are preservatives. In fact, to make pickled vegetables, iodized salt is not recommended and typically to preserve food one would use canning salt. 
