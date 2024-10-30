@@ -70,5 +70,200 @@ To control for temperature we set the thermostat to "auto" mode to maintain a co
 All of the data is put into the Github. The data consists of the following: an experiment diary recording the details of the experiment across 5 days that focuses on describing the process of collecting the data, the data itself that is stored in an excel sheet, and the raw photos of a total of 150 bananas. The data has a recorded weight for all the bananas before treatment was applied and columns for 5 days each with the ratings from 5 participants. 
 
 # Exploratory Data Analysis
-NEED PEIYAO PLOTS FOR EDA
-The first thing that needed to be checked was confirming that none of the banana ratings are reversing in age. The overall trend that we see from the figure is that the ratings are increasing as expected. There's a few bananas that might have decreased in rating on one day but those were humans errors that the group was willing to accept. No data entries were thrown out and no data cleaning was done. The second thing we wanted to check was to see if there was any grader bias. If one grader is always rating the bananas with a high value then this is something we must consider in our analysis. From the figure we see that for the most part, except for one grader who on average rated a little bit lower than the other participants, we have consistent ratings. This informed us to not consider the grader effect as part of our analysis for treatment effect. 
+```{r preprocessing}
+library(readxl)
+raw =read_xlsx('Info_finfinfin.xlsx')
+day1_avg = rowMeans(raw[,5:9])
+day5_avg = rowMeans(raw[,25:29])
+dif = day5_avg - day1_avg
+salt = (raw$Group == 'Salt')
+sugar = (raw$Group == 'Sugar')
+weight = raw$`Weight1(g)`
+data = data.frame(y = dif, salt = as.factor(salt), sugar = as.factor(sugar), weight = weight, day1 = day1_avg)
+```
+
+```{r}
+hist(raw$`Weight1(g)`, main = 'Histogram of Weights', xlab = 'Weights in grams')
+```
+
+
+```{r}
+#plot1
+day2_avg = rowMeans(raw[,10:14])
+day3_avg = rowMeans(raw[,15:19])
+day4_avg = rowMeans(raw[,20:14])
+
+data_all_day = cbind(day1_avg, day2_avg,day3_avg,day4_avg,day5_avg)
+days = 1:5
+
+sugar_sub = data_all_day[which(raw$Group == 'Sugar'),]
+salt_sub = data_all_day[which(raw$Group == 'Salt'),]
+ctrl_sub = data_all_day[which(raw$Group == 'Control'),]
+
+
+combined_matrix = rbind(sugar_sub, salt_sub, ctrl_sub)
+
+
+colors = c(rep("green", 10), rep("red", 10), rep("blue", 10))
+
+
+matplot(t(combined_matrix), type = "l", lty = 1, col = colors, 
+        xlab = "Days", ylab = "Y values", main = "Banana Ripeness Dynamics",lwd = 2)
+legend("topleft", legend = c("Sugar", "Salt", "Control"), 
+       col = c("green", "red", "blue"), lty = 1)
+```
+
+
+```{r}
+g1_avg = colMeans(raw[,c(5,10,15,20,25)])
+g2_avg = colMeans(raw[,(c(5,10,15,20,25)+1)])
+g3_avg = colMeans(raw[,(c(5,10,15,20,25)+2)])
+g4_avg = colMeans(raw[,(c(5,10,15,20,25)+3)])
+g5_avg = colMeans(raw[,(c(5,10,15,20,25)+4)])
+
+combined = rbind(g1_avg,g2_avg,g3_avg,g4_avg,g5_avg)
+colors = c('green', 'red', 'blue', 'pink', 'yellow')
+matplot(t(combined), type = "l", lty = 1, col = colors, 
+        xlab = "Days", ylab = "Y values", main =  "Ripeness Grading Dynamics",lwd = 2)
+legend("topleft", legend = c("Grader 1", "Grader 2", "Grader 3", "Grader 4", "Grader 5"), 
+       col = c("green", "red", "blue","pink", "yellow"), lty = 1)
+
+
+```
+
+
+The first thing that needed to be checked was confirming that none of the banana ratings are reversing in age. The overall trend that we see from the figure is that the ratings are increasing as expected. There's a few bananas that might have decreased in rating on one day but those were humans errors that the group was willing to accept. No data entries were thrown out and no data cleaning was done. The second thing we wanted to check was to see if there was any grader bias. If one grader is always rating the bananas with a high value then this is something we must consider in our analysis. From the figure we see that for the most part, except for one grader who on average rated a little bit lower than the other participants, we have consistent ratings. This informed us to not consider the grader effect as part of our analysis for treatment effect.
+
+
+
+## Statistical Tests
+```{r difference in means}
+library(tidyverse)
+dif_ctrl = dif[which(raw$Group == 'Control')]
+dif_salt = dif[which(raw$Group == 'Salt')]
+dif_sugar = dif[which(raw$Group == 'Sugar')]
+
+dif_list = list(Control = dif_ctrl, Salt = dif_salt, Sugar = dif_sugar)
+
+boxplot(dif_list,
+        main = "Boxplot of Three Groups", 
+        xlab = "Groups", 
+        ylab = "Difference in Ripeness",
+        col = c("lightblue", "lightgreen", "lightpink"))
+```
+
+In this section, we examine the treatment effects of burying bananas in sugar and salt on their ripeness levels. 
+We start by a simple visualization of our results.
+We define response variable $Y$ as the change in ripeness level from day 1 to day 5 for each single bananas. 
+Next, we create box plots for the salt group, sugar group, and control group. 
+As shown in the figure above, the distribution of the salt group is very similar to the control group, and the sugar group seems to be significantly lower than the other two groups in the ripeness level. 
+To provide statistical guarantees, we apply a t-test, permutation test, and linear regression to further validate our conclusions.
+
+Firstly, we compare the ripeness of treatment groups (salt or sugar) with control group by using two-sample t tests, the results are given as follows
+```{r t test}
+t.test(dif_ctrl, dif_salt)
+t.test(dif_ctrl, dif_sugar)
+```
+
+The p value for the sugare group is tiny, hence supporting our conclusions.
+
+For the permutation test, considering for each treatment+ control group, we have $20$ data points and fully permuting all treatments will induce high computing burdens ($2^{20}$ operations).
+To this end, we consider using blocked permuting test.
+We group our bananas into 3 sub groups by their weights (light, medium, heavy).
+Each treatment group contains 10 bananas, and the 10 bananas include 3 light, 4 medium and 3 heavy bananas.
+We only permute the treatment inside the weight groups.
+The testing procedures are given as follows, we firstly consider salt group:
+
+```{r}
+library(tidyverse)
+observed_difference = mean(dif_salt) - mean(dif_ctrl)
+small_idx = which((raw$size == 'small')&(raw$Group!='Sugar'))
+medium_idx = which((raw$size == 'medium')&(raw$Group!='Sugar'))
+large_idx = which((raw$size == 'large')&(raw$Group!='Sugar'))
+
+idx_rank = c(small_idx, medium_idx, large_idx)
+dif_all = dif[idx_rank]
+blockAcombos = combn(6,3)
+blockBcombos = combn(8,4)+6
+blockCcombos = combn(6,3)+14
+blockcombos = matrix(NA, 10, ncol(blockAcombos)*ncol(blockBcombos)*ncol(blockCcombos))
+blockcombos[1,] = rep(blockAcombos[1,], each=ncol(blockBcombos)*ncol(blockCcombos))
+blockcombos[2,] = rep(blockAcombos[2,], each=ncol(blockBcombos)*ncol(blockCcombos))
+blockcombos[3,] = rep(blockAcombos[3,], each=ncol(blockBcombos)*ncol(blockCcombos))
+blockcombos[4,] = rep(rep(blockBcombos[1,], each = ncol(blockCcombos)), times = ncol(blockAcombos))
+blockcombos[4,] = rep(rep(blockBcombos[1,], each = ncol(blockCcombos)), times = ncol(blockAcombos))
+blockcombos[5,] = rep(rep(blockBcombos[2,], each = ncol(blockCcombos)), times = ncol(blockAcombos))
+blockcombos[6,] = rep(rep(blockBcombos[3,], each = ncol(blockCcombos)), times = ncol(blockAcombos))
+blockcombos[7,] = rep(rep(blockBcombos[4,], each = ncol(blockCcombos)), times = ncol(blockAcombos))
+blockcombos[8,] = rep(blockCcombos[1,], times = ncol(blockAcombos) * ncol(blockBcombos))
+blockcombos[9,] = rep(blockCcombos[2,], times = ncol(blockAcombos) * ncol(blockBcombos))
+blockcombos[10,] = rep(blockCcombos[3,], times = ncol(blockAcombos) * ncol(blockBcombos))
+
+# Permutation test:
+combos = blockcombos
+permN = ncol(combos)
+diffs = rep(NA, permN)
+for (i in 1:permN){
+permx = rep(0,20)
+permx[combos[,i]] = 1
+diffs[i] = sum(dif_all[permx==1])/10 - sum(dif_all[permx==0])/10
+}
+hist(diffs,main='Histogram of difference-in-means (salt group)', xlab='difference-in-means')
+print(mean(diffs > observed_difference))
+```
+
+The p-value is around $0.2$, not significant.
+Next we consider the sugar group:
+```{r}
+library(tidyverse)
+dif_ctrl = dif[which(raw$Group == 'Control')]
+dif_salt = dif[which(raw$Group == 'Salt')]
+dif_sugar = dif[which(raw$Group == 'Sugar')]
+
+observed_difference = mean(dif_sugar) - mean(dif_ctrl)
+small_idx = which((raw$size == 'small')&(raw$Group!='Salt'))
+medium_idx = which((raw$size == 'medium')&(raw$Group!='Salt'))
+large_idx = which((raw$size == 'large')&(raw$Group!='Salt'))
+
+idx_rank = c(small_idx, medium_idx, large_idx)
+dif_all = dif[idx_rank]
+blockAcombos = combn(6,3)
+blockBcombos = combn(8,4)+6
+blockCcombos = combn(6,3)+14
+blockcombos = matrix(NA, 10, ncol(blockAcombos)*ncol(blockBcombos)*ncol(blockCcombos))
+blockcombos[1,] = rep(blockAcombos[1,], each=ncol(blockBcombos)*ncol(blockCcombos))
+blockcombos[2,] = rep(blockAcombos[2,], each=ncol(blockBcombos)*ncol(blockCcombos))
+blockcombos[3,] = rep(blockAcombos[3,], each=ncol(blockBcombos)*ncol(blockCcombos))
+blockcombos[4,] = rep(rep(blockBcombos[1,], each = ncol(blockCcombos)), times = ncol(blockAcombos))
+blockcombos[4,] = rep(rep(blockBcombos[1,], each = ncol(blockCcombos)), times = ncol(blockAcombos))
+blockcombos[5,] = rep(rep(blockBcombos[2,], each = ncol(blockCcombos)), times = ncol(blockAcombos))
+blockcombos[6,] = rep(rep(blockBcombos[3,], each = ncol(blockCcombos)), times = ncol(blockAcombos))
+blockcombos[7,] = rep(rep(blockBcombos[4,], each = ncol(blockCcombos)), times = ncol(blockAcombos))
+blockcombos[8,] = rep(blockCcombos[1,], times = ncol(blockAcombos) * ncol(blockBcombos))
+blockcombos[9,] = rep(blockCcombos[2,], times = ncol(blockAcombos) * ncol(blockBcombos))
+blockcombos[10,] = rep(blockCcombos[3,], times = ncol(blockAcombos) * ncol(blockBcombos))
+
+# Permutation test:
+combos = blockcombos
+permN = ncol(combos)
+diffs = rep(NA, permN)
+for (i in 1:permN){
+#print(i)
+permx = rep(0,20)
+permx[combos[,i]] = 1
+diffs[i] = mean(dif_all[permx==1]) - mean(dif_all[permx==0])
+}
+hist(diffs,main='Histogram of difference-in-means (sugar group)', xlab='difference-in-means')
+mean(diffs <= observed_difference)
+```
+We have a tiny p-value, hence supporting our claim.
+
+Finally, we consider the linear regression model $\mathrm{Ripeness}_i = a + b*\mathrm{weight}_i + c*1\{\mathrm{salt}_i \} + d*1\{\mathrm{sugar}_i \} + e*\mathrm{day1RipenLevel_i} + \epsilon_i$.
+The linear regression result is shown below:
+
+```{r regression}
+lm_obj = lm(y~., data = data)
+summary(lm_obj)
+```
+We can see that the sugar indicator is significantly negative in the regression result.
+Putting all pieces together, our statsitical test results together show that burying bananas in sugar can alleviate banana ripeness.
