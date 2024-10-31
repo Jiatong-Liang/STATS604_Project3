@@ -233,11 +233,13 @@ boxplot(dif_list,
         col = c("lightblue", "lightgreen", "lightpink"))
 ```
 
-In this section, we examine the treatment effects of burying bananas in sugar and salt and the effect on their ripeness levels. We begin with a simple visualization of our results. We define the response variable $Y$ as the change in ripeness level from day 1 to day 5 for each individual banana. Next, we create box plots for the salt group, sugar group, and control group. As shown in the figure above, the distribution of ripeness levels in the salt group is very similar to that of the control group, while the sugar group appears to have significantly lower ripeness levels than the other two groups. To provide statistical support, we apply a t-test, permutation test, and linear regression to further validate our conclusions.
+In this analysis, we examined the effectiveness of sugar and salt as preservatives for bananas by assessing the changes in ripeness levels across the control, salt, and sugar groups from day 1 to day 5. Our hypothesis testing framework aimed to statistically evaluate whether either treatment slowed the ripening process compared to the control.
+
+The initial boxplot provides a visual comparison, suggesting that bananas in the sugar treatment had a lower average ripeness difference over the five-day period, indicating potentially slower ripening. In contrast, the salt-treated bananas displayed a ripeness distribution very similar to the control group, implying little to no difference in ripening rates between these two groups. These observations set the foundation for formal hypothesis testing to verify if the observed differences are statistically significant.
 
 ### T-test
 
-Firstly, we compare the ripeness of the treatment groups (salt or sugar) with the control group using one sided two-sample t-tests. For $t \in \{\mathrm{sugar}, \mathrm{salt}\}$, we focus on the following hypothesis testing problem:
+We applied one-sided, two-sample t-tests to compare the change in ripeness levels between each treatment and the control group, focusing on the alternative hypothesis that the ripeness in the treatment groups (sugar or salt) is less than that of the control group. For $t \in \{\mathrm{sugar}, \mathrm{salt}\}$, we focus on the following hypothesis testing problem:
 \[
 \mathrm{H}_0: \mathrm{Ripeness}_{t} = \mathrm{Ripeness}_{\mathrm{control}},~~\mathrm{versus}~~\mathrm{H}_a: \mathrm{Ripeness}_{t} < \mathrm{Ripeness}_{\mathrm{control}}.
 \]
@@ -247,12 +249,13 @@ t.test(dif_ctrl, dif_salt, alternative = 'greater')
 t.test(dif_ctrl, dif_sugar, alternative  = 'greater')
 ```
 
-The p-value for the sugar group is very small, supporting our conclusions. 
+The t-test comparing the salt group to the control group yielded a high p-value (0.7354), which is not statistically significant. This outcome fails to reject the null hypothesis, suggesting that the mean difference in ripeness between the salt and control groups is not significantly different. This supports the visual finding that salt does not appear to have a preservative effect on bananas, as its impact on ripeness is indistinguishable from that of the untreated control group.
+
+In contrast, the t-test comparing the sugar group to the control group resulted in a very low p-value (0.0096). This significant result allows us to reject the null hypothesis in favor of the alternative hypothesis, indicating that bananas treated with sugar ripened more slowly than those in the control group. The 95% confidence interval for the difference in means is strictly positive (from 0.7263 to infinity), reinforcing that the sugar treatment effectively slowed ripening relative to the untreated bananas.
 
 ### Permutation Test
 
-For the permutation test, we focus on the same hypothesis testing problem shown above. 
-Considering that each treatment and control group has 20 data points, fully permuting all treatments would require substantial computational resources ($2^{20}$ operations). To address this, we use a blocked permutation test. We group the bananas into three subgroups based on their weights (light, medium, and heavy). Each treatment group contains 10 bananas, with 3 light, 4 medium, and 3 heavy bananas. We then permute only within these weight groups. The testing procedures are outlined below, beginning with the salt group.
+The Permutation Test further reinforces the findings of the t-test by testing the hypothesis that the ripeness levels in each treatment group (salt or sugar) are comparable to those in the control group. Given the structure of the experiment, fully permuting all treatment labels would be computationally challenging. Instead, we use a blocked permutation test, preserving the groupings of experimental design based on banana weights (small, medium, and large) to maintain balanced comparisons within each weight category.
 
 ```{r, echo = FALSE}
 observed_difference = mean(dif_salt) - mean(dif_ctrl)
@@ -291,7 +294,9 @@ hist(diffs,main='Histogram of difference-in-means (salt group)', xlab='differenc
 print(mean(diffs > observed_difference))
 ```
 
-The p-value is around $0.2$, which is not significant. Next we consider the sugar group:
+We first examine the salt group by calculating the observed mean difference in ripeness between the salt and control groups. This observed difference serves as our reference statistic. We then generate a distribution of mean differences through permutations, preserving the banana size blocks to control for any size-related effects on ripening. The histogram of these permuted differences illustrates the range of possible outcomes under the null hypothesis of no treatment effect.
+
+The p-value for this test, approximately 0.2, indicates that the observed difference is not statistically significant. This non-significant result aligns with the t-test findings and reinforces the conclusion that salt does not impact the ripening process.
 
 ```{r, echo = FALSE}
 dif_ctrl = dif[which(raw$Group == 'Control')]
@@ -335,11 +340,13 @@ hist(diffs, main='Histogram of difference-in-means (sugar group)', xlab='differe
 mean(diffs <= observed_difference)
 ```
 
-We have a tiny p-value that is less than 0.05, so we can conclude that sugar has an effect in slowing the ripening process, hence supporting our claim.
+Next, we evaluate the sugar group in a similar manner, calculating the observed difference in ripeness between the sugar-treated bananas and the control group. Following the same blocked permutation procedure, we obtain a distribution of differences in mean ripeness under the null hypothesis. The histogram reveals that the observed difference in ripeness for the sugar group lies in the extreme tail of the distribution, yielding a very low p-value (0.005).
+
+This significant p-value allows us to reject the null hypothesis, indicating that the observed slowing of ripening in the sugar group is highly unlikely to be due to random chance. This result suggests that sugar has an effect in delaying the ripening process, consistent with our initial hypothesis and visual observations from the boxplot.
 
 ### Linear Regression Model
 
-Finally, we consider the linear regression model
+The Linear Regression Model provides a final layer of analysis, allowing us to adjust for baseline covariates such as initial ripeness and weight, which may influence the ripening process.
 \[
 \mathrm{Ripeness}_i = a + b*\mathrm{weight}_i + c*1\{\mathrm{salt}_i \} + d*1\{\mathrm{sugar}_i \} + e*\mathrm{day1RipenLevel_i} + \epsilon_i
 \].
@@ -350,8 +357,14 @@ lm_obj = lm(y~., data = data)
 summary(lm_obj)
 ```
 
-The purpose of the linear regression model is to adjust for the Day 1 colors and the weight as baseline covariates. We can see that the sugar indicator is significantly negative in the regression result with a small p value. Putting all pieces together, our statistical test results together show that burying bananas in sugar can slow down banana ripeness.
+The regression results show that the sugar indicator variable has a significantly negative coefficient ($-2.031$, p = 0.0106). This result suggests that, even after controlling for weight and initial ripeness, bananas treated with sugar exhibit a statistically significant decrease in ripening levels compared to the control group. This finding aligns with our previous statistical tests and provides further evidence that sugar effectively slows down the ripening process.
+
+The salt indicator variable has a non-significant coefficient ($0.642$, p = 0.3925), implying that salt treatment does not have a statistically significant effect on ripening when adjusted for weight and initial ripeness. This outcome reinforces previous findings that salt does not meaningfully impact the ripening process.
+
+In summary, our analysis using t-tests, permutation tests, and a linear regression model consistently demonstrated that sugar treatment significantly slows down banana ripening, while salt treatment shows no such effect. The t-tests provided initial evidence of sugar’s impact through significant differences in ripeness compared to the control group. The permutation tests reinforced these findings by showing that the observed effect of sugar was unlikely due to chance, especially when controlling for banana size. Finally, the linear regression model confirmed that the sugar treatment effect remains significant even after adjusting for weight and initial ripeness levels. Collectively, these three methods provide support for the conclusion that burying bananas in sugar effectively delays ripening, while salt treatment does not offer similar benefits.
 
 # Conclusion
 
-Overall, our findings suggest that burying bananas in granulated sugar slows the ripening process, while iodized salt is ineffective. A possible improvement to this experiment would be to use canning salt instead of iodized salt. Before this experiment, we did not realize that not all salts are preservatives. In fact, iodized salt is not recommended for pickling and canning salt is typically used to preserve food.
+Our experiment demonstrates that burying bananas in granulated sugar effectively slows the ripening process, while iodized salt shows no such impact. Using multiple statistical analyses, including t-tests, permutation tests, and linear regression, we consistently observed that sugar significantly delayed ripening, supporting its preservative effect on bananas. In contrast, iodized salt, though chosen for its accessibility, did not influence ripening rates, likely due to its lack of preservative properties.
+
+To improve future studies, canning salt, could be used as an alternative to iodized salt, as it may yield different results. This experiment also highlights the importance of selecting materials with known preservative qualities, since not all types of salt are effective for food preservation.
